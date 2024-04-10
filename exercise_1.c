@@ -30,29 +30,47 @@ void lbm_comm_init_ex1(lbm_comm_t * comm, int total_width, int total_height)
 	//
 	// HINT: You can look in exercise_0.c to get an example for the sequential case.
 	//
+	//get infos
+	int rank;
+	int comm_size;
+	MPI_Comm_rank( MPI_COMM_WORLD, &rank );
+	MPI_Comm_size( MPI_COMM_WORLD, &comm_size );
 
-	// TODO: calculate the number of tasks along X axis and Y axis.
-	comm->nb_x = -1;
-	comm->nb_y = -1;
+	//we must split only in x because y is contiguous in memory
 
-	// TODO: calculate the current task position in the splitting
-	comm->rank_x = -1;
-	comm->rank_y = -1;
+	//        calculate the number of tasks along X axis and Y axis.
+	comm->nb_x = comm_size;
+	comm->nb_y = 1;
 
-	// TODO : calculate the local sub-domain size (do not forget the 
+	//        calculate the current task position in the splitting
+	comm->rank_x = rank;
+	comm->rank_y = 0;
+
+	//        calculate the local sub-domain size (do not forget the 
 	//        ghost cells). Use total_width & total_height as starting 
 	//        point.
-	comm->width = -1;
-	comm->height = -1;
+	comm->width = (total_width+1)/comm_size + 1;
+	comm->height = total_height + 2;
+	//fill in the gap on the last sub-domain :
+	if (rank == comm_size -1)
+		comm->width += total_width%comm_size;
 
-	// TODO : calculate the absolute position in the global mesh.
+	//        calculate the absolute position in the global mesh.
 	//        without accounting the ghost cells
 	//        (used to setup the obstable & initial conditions).
-	comm->x = -1;
-	comm->y = -1;
+	comm->x = (total_width+1)/comm_size * rank + 1; //TODO is it ?
+	//reasoning : for each rank, there is overlap with the previous and the next,
+	//except rank 0 where it is only with next - making an offset +1
+	//in other words, there is an offset +1 due to extra space on the side of rank 0
+	if (rank == 0)
+		comm->x = 0;
+	//no need to correct last rank because width does not change x
+	comm->y = 0;
 
 	//if debug print comm
-	//lbm_comm_print(comm);
+	#ifndef NDEBUG
+	lbm_comm_print( comm );
+	#endif
 }
 
 /****************************************************/

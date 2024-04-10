@@ -1,1 +1,4 @@
 /output.raw
+check_comm
+lbm
+objs/*.o
