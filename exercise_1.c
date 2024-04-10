@@ -88,4 +88,34 @@ void lbm_comm_ghost_exchange_ex1(lbm_comm_t * comm, lbm_mesh_t * mesh)
 	//example to access cell
 	//double * cell = lbm_mesh_get_cell(mesh, local_x, local_y);
 	//double * cell = lbm_mesh_get_cell(mesh, comm->width - 1, 0);
+
+	//get infos
+	int rank;
+	int comm_size;
+	MPI_Comm_rank( MPI_COMM_WORLD, &rank );
+	MPI_Comm_size( MPI_COMM_WORLD, &comm_size );
+
+	
+	#define LEFT 0
+	#define RIGHT 1
+	int dest_rank;
+	int src_rank;
+	/*
+	SENDING
+	*/
+	//Left ghost
+	if (rank=!0)
+		MPI_Send( mesh , comm->height , MPI_Datatype datatype , rank-1 , LEFT , comm);
+	//Right ghost
+	if (rank!=comm_size-1)
+		MPI_Send( mesh , comm->height , MPI_Datatype datatype , rank+1 , RIGHT , comm);
+
+	
+	/*
+	RECEIVING
+	*/
+	//Left ghost
+	//Right ghost
+
+
 }
