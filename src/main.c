@@ -264,7 +264,7 @@ int main(int argc, char * argv[])
 	}
 
 	//master open the output file
-	//if( rank == RANK_MASTER )
+	// if( rank == RANK_MASTER )
 	lbm_open_output_file(&comm);
 	MPI_Barrier(MPI_COMM_WORLD);
 
@@ -272,9 +272,12 @@ int main(int argc, char * argv[])
 	lbm_init_mesh_state( &mesh, &mesh_type, &comm);
 	lbm_init_mesh_state( &temp, &mesh_type, &comm);
 
+	// printf("//setup initial conditions on mesh\n");
+
 	//write initial condition in output file
 	if (lbm_gbl_config.output_filename != NULL)
 		lbm_save_ex_select(&save_mesh, &comm, &mesh, &mesh_type, 0 / WRITE_STEP_INTERVAL);
+	printf("//write initial condition in output file\n");
 
 	//start time
 	struct timespec start;
@@ -288,6 +291,7 @@ int main(int argc, char * argv[])
 	for ( i = 1 ; i < ITERATIONS ; i++ )
 	{
 		//compute
+		printf("Compute %d\n",i);
 		lbm_do_step_ex_select(&comm, &mesh_type, &mesh, &temp );
 
 		//save step
