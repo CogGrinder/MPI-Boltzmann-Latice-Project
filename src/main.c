@@ -291,7 +291,7 @@ int main(int argc, char * argv[])
 	for ( i = 1 ; i < ITERATIONS ; i++ )
 	{
 		//compute
-		printf("Compute %d\n",i);
+		// printf("Compute %d\n",i);
 		lbm_do_step_ex_select(&comm, &mesh_type, &mesh, &temp );
 
 		//save step
