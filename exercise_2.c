@@ -22,6 +22,8 @@
 /****************************************************/
 #include "src/lbm_struct.h"
 #include "src/exercises.h"
+#define SEND_LEFT 0
+#define SEND_RIGHT 1
 
 /****************************************************/
 void lbm_comm_init_ex2(lbm_comm_t * comm, int total_width, int total_height)
@@ -46,4 +48,73 @@ void lbm_comm_ghost_exchange_ex2(lbm_comm_t * comm, lbm_mesh_t * mesh)
 	//example to access cell
 	//double * cell = lbm_mesh_get_cell(mesh, local_x, local_y);
 	//double * cell = lbm_mesh_get_cell(mesh, comm->width - 1, 0);
+
+	//if the rank_x is odd, we send before receiving
+	//if the rank_x is even, we do the opposite
+	if (comm->rank_x%2) {
+		/*
+		SENDING
+		*/
+		//To left ghost
+		if (comm->rank_x>0)
+			MPI_Ssend( lbm_mesh_get_cell(mesh,1            ,0) , comm->height * DIRECTIONS , MPI_DOUBLE ,
+				comm->rank_x-1 , SEND_LEFT  , MPI_COMM_WORLD);
+		//To right ghost
+		if (comm->rank_x<comm->nb_x-1)
+			MPI_Ssend( lbm_mesh_get_cell(mesh,comm->width-2,0) , comm->height * DIRECTIONS , MPI_DOUBLE , 
+				comm->rank_x+1 , SEND_RIGHT , MPI_COMM_WORLD);
+
+		
+		/*
+		RECEIVING
+		*/
+
+		//From right ghost aka SEND_LEFT
+		if (comm->rank_x<comm->nb_x-1)
+		{
+			MPI_Recv( lbm_mesh_get_cell(mesh,comm->width-1,0) , comm->height * DIRECTIONS , MPI_DOUBLE ,
+				comm->rank_x+1 , SEND_LEFT  , MPI_COMM_WORLD , MPI_STATUS_IGNORE);
+		}
+			
+		//From left ghost aka SEND_RIGHT
+		if (comm->rank_x>0)
+		{
+			MPI_Recv( lbm_mesh_get_cell(mesh,0            ,0) , comm->height * DIRECTIONS , MPI_DOUBLE ,
+				comm->rank_x-1 , SEND_RIGHT , MPI_COMM_WORLD , MPI_STATUS_IGNORE);
+		}
+	} else {
+
+		/*
+		RECEIVING
+		*/
+
+		//From right ghost aka SEND_LEFT
+		if (comm->rank_x<comm->nb_x-1)
+		{
+			MPI_Recv( lbm_mesh_get_cell(mesh,comm->width-1,0) , comm->height * DIRECTIONS , MPI_DOUBLE ,
+				comm->rank_x+1 , SEND_LEFT  , MPI_COMM_WORLD , MPI_STATUS_IGNORE);
+		}
+			
+		//From left ghost aka SEND_RIGHT
+		if (comm->rank_x>0)
+		{
+			MPI_Recv( lbm_mesh_get_cell(mesh,0            ,0) , comm->height * DIRECTIONS , MPI_DOUBLE ,
+				comm->rank_x-1 , SEND_RIGHT , MPI_COMM_WORLD , MPI_STATUS_IGNORE);
+		}
+
+		/*
+		SENDING
+		*/
+		//To left ghost
+		if (comm->rank_x>0)
+			MPI_Ssend( lbm_mesh_get_cell(mesh,1            ,0) , comm->height * DIRECTIONS , MPI_DOUBLE ,
+				comm->rank_x-1 , SEND_LEFT  , MPI_COMM_WORLD);
+		//To right ghost
+		if (comm->rank_x<comm->nb_x-1)
+			MPI_Ssend( lbm_mesh_get_cell(mesh,comm->width-2,0) , comm->height * DIRECTIONS , MPI_DOUBLE , 
+				comm->rank_x+1 , SEND_RIGHT , MPI_COMM_WORLD);
+
+
+	}
+
 }
