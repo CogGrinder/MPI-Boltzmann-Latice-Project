@@ -97,7 +97,7 @@ void lbm_comm_ghost_exchange_ex1(lbm_comm_t * comm, lbm_mesh_t * mesh)
 	
 	#define LEFT 0
 	#define RIGHT 1
-	
+	#ifdef LEFT
 	/*
 	SENDING
 	*/
@@ -138,4 +138,5 @@ void lbm_comm_ghost_exchange_ex1(lbm_comm_t * comm, lbm_mesh_t * mesh)
 		}
 	}
 	free(col_buffer);
+	#endif
 }
