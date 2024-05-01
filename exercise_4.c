@@ -94,7 +94,7 @@ void lbm_comm_release_ex4(lbm_comm_t * comm)
 }
 
 /****************************************************/
-int get_rank(lbm_comm_t * comm, int rank_y, int rank_x)
+int get_rank(lbm_comm_t * comm, int rank_x, int rank_y)
 {
 	return rank_y * comm->nb_x + rank_x;
 }
@@ -166,7 +166,6 @@ void lbm_comm_ghost_exchange_ex4(lbm_comm_t * comm, lbm_mesh_t * mesh)
 	{
 		MPI_Ssend( lbm_mesh_get_cell(mesh,1            ,0) , comm->height * DIRECTIONS , MPI_DOUBLE ,
 			get_rank(comm,comm->rank_x-1,comm->rank_y) , SEND_LEFT  , MPI_COMM_WORLD);
-		printf("To left ghost\n");
 	}
 
 	/*
@@ -177,7 +176,6 @@ void lbm_comm_ghost_exchange_ex4(lbm_comm_t * comm, lbm_mesh_t * mesh)
 	{
 		MPI_Recv( lbm_mesh_get_cell(mesh,comm->width-1,0) , comm->height * DIRECTIONS , MPI_DOUBLE ,
 			get_rank(comm,comm->rank_x+1,comm->rank_y) , SEND_LEFT  , MPI_COMM_WORLD , MPI_STATUS_IGNORE);
-		printf("From right ghost aka SEND_LEFT\n");
 	}
 
 
@@ -189,7 +187,6 @@ void lbm_comm_ghost_exchange_ex4(lbm_comm_t * comm, lbm_mesh_t * mesh)
 	{
 		MPI_Ssend( lbm_mesh_get_cell(mesh,comm->width-2,0) , comm->height * DIRECTIONS , MPI_DOUBLE , 
 			get_rank(comm,comm->rank_x+1,comm->rank_y) , SEND_RIGHT , MPI_COMM_WORLD);
-		printf("To right ghost\n");
 	}
 
 
@@ -201,13 +198,12 @@ void lbm_comm_ghost_exchange_ex4(lbm_comm_t * comm, lbm_mesh_t * mesh)
 	{
 		MPI_Recv( lbm_mesh_get_cell(mesh,0            ,0) , comm->height * DIRECTIONS , MPI_DOUBLE ,
 			get_rank(comm,comm->rank_x-1,comm->rank_y) , SEND_RIGHT , MPI_COMM_WORLD , MPI_STATUS_IGNORE);
-		printf("From left ghost aka SEND_RIGHT\n");
 	}
 
 
 
 	// TODO : allocate memory and horizontal cache ??
-	double* temp = malloc(comm->width * DIRECTIONS);
+	double* temp = malloc(sizeof(double) * comm->width * DIRECTIONS *2);
 
 
 	/*********** VERTICAL ***********/
@@ -222,7 +218,6 @@ void lbm_comm_ghost_exchange_ex4(lbm_comm_t * comm, lbm_mesh_t * mesh)
 		
 		MPI_Ssend( temp , comm->width * DIRECTIONS , MPI_DOUBLE ,
 			get_rank(comm,comm->rank_x,comm->rank_y-1) , SEND_UP  , MPI_COMM_WORLD);
-		printf("To upper ghost\n");
 	}
 	
 	
@@ -235,8 +230,7 @@ void lbm_comm_ghost_exchange_ex4(lbm_comm_t * comm, lbm_mesh_t * mesh)
 		MPI_Recv( temp , comm->width * DIRECTIONS , MPI_DOUBLE ,
 			get_rank(comm,comm->rank_x,comm->rank_y+1) , SEND_UP  , MPI_COMM_WORLD , MPI_STATUS_IGNORE);
 		
-		copy_line_from_buffer(comm , mesh , temp , comm->width-1);
-		printf("From upper ghost aka SEND_UP\n");
+		copy_line_from_buffer(comm , mesh , temp , comm->height-1);
 	}
 
 
@@ -246,11 +240,10 @@ void lbm_comm_ghost_exchange_ex4(lbm_comm_t * comm, lbm_mesh_t * mesh)
 	//To lower ghost
 	if (comm->rank_y<comm->nb_y-1)
 	{
-		copy_line_to_buffer(comm , mesh , temp , comm->width-2);
+		copy_line_to_buffer(comm , mesh , temp , comm->height-2);
 		
 		MPI_Ssend( temp , comm->width * DIRECTIONS , MPI_DOUBLE , 
 			get_rank(comm,comm->rank_x,comm->rank_y+1) , SEND_DOWN , MPI_COMM_WORLD);
-		printf("To lower ghost\n");
 	}
 
 
@@ -264,7 +257,6 @@ void lbm_comm_ghost_exchange_ex4(lbm_comm_t * comm, lbm_mesh_t * mesh)
 			get_rank(comm,comm->rank_x,comm->rank_y-1) , SEND_DOWN , MPI_COMM_WORLD , MPI_STATUS_IGNORE);
 		
 		copy_line_from_buffer(comm , mesh , temp , 0);
-		printf("From lower ghost aka SEND_DOWN\n");
 	}
 
 
