@@ -277,7 +277,6 @@ int main(int argc, char * argv[])
 	//write initial condition in output file
 	if (lbm_gbl_config.output_filename != NULL)
 		lbm_save_ex_select(&save_mesh, &comm, &mesh, &mesh_type, 0 / WRITE_STEP_INTERVAL);
-	printf("//write initial condition in output file\n");
 
 	//start time
 	struct timespec start;
